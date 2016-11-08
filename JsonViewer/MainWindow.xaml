@@ -1,0 +1,62 @@
+﻿<controls:MetroWindow
+    x:Class="JsonViewer.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:JsonViewer"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="JSON Viewer"
+    Width="400"
+    Height="500"
+    BorderBrush="{DynamicResource ControlBorderBrush}"
+    BorderThickness="1"
+    Icon="Brackets-icon.png"
+    ResizeMode="CanResizeWithGrip"
+    SaveWindowPosition="True"
+    TitleForeground="White"
+    TitleCharacterCasing="Normal"
+    UseLayoutRounding="True"
+    mc:Ignorable="d">
+
+    <Window.DataContext>
+        <local:MainWindowViewModel />
+    </Window.DataContext>
+
+
+    <controls:MetroWindow.RightWindowCommands>
+        <controls:WindowCommands>
+            <CheckBox
+                Foreground="White"
+                Content="Keep On Top" IsChecked="{Binding Path=Topmost, Mode=OneWayToSource,
+                          RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Window}}" />
+        </controls:WindowCommands>
+    </controls:MetroWindow.RightWindowCommands>
+
+    <DockPanel LastChildFill="True">
+
+        <Button
+            Margin="2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Top"
+            Foreground="White"
+            Command="{Binding FormatJsonCommand}"
+            CommandParameter="{Binding ElementName=_tb}"
+            Content="Paste and Format!"
+            DockPanel.Dock="Top" />
+
+        <TextBox
+            x:Name="_tb"
+            VerticalContentAlignment="Top"
+            FontFamily="Lucida Console"
+            FontSize="12"
+            AcceptsReturn="True"
+            HorizontalScrollBarVisibility="Auto"
+            Text="{Binding JsonText}"
+            TextOptions.TextFormattingMode="Ideal"
+            VerticalScrollBarVisibility="Auto" />
+
+    </DockPanel>
+
+</controls:MetroWindow>
+
