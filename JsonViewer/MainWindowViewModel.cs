@@ -1,54 +1,78 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using Newtonsoft.Json;
+using System.Xml;
+using ICSharpCode.AvalonEdit.Document;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Newtonsoft.Json.Linq;
 using PropertyChanged;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace JsonViewer
 {
     [ImplementPropertyChanged]
     public class MainWindowViewModel
     {
+        public string JsonText { get; set; } = "";
 
-        public string JsonText { get; set; }
+        public TextDocument Document => new TextDocument { Text = JsonText };
+        public bool ShowEditor => !string.IsNullOrEmpty(JsonText);
 
         public RelayCommand FormatJsonCommand { get; private set; }
+        public IHighlightingDefinition SyntaxHighlightDef { get; set; }
 
 
         public MainWindowViewModel()
         {
-            FormatJsonCommand = new RelayCommand(FormatJson);
+            // Bail out if we're in the designer
+            if (DesignerProperties.GetIsInDesignMode(new DependencyObject())) return;
+
+            FormatJsonCommand = new RelayCommand(async _ => JsonText = await FormatJson(Clipboard.GetText()));
+
+            LoadTheSyntaxFile();
         }
 
-        private void FormatJson(object p)
+        private void LoadTheSyntaxFile()
         {
-            if (Clipboard.ContainsText() == false) return;
+            var fileUri = new Uri("/json.xshd", UriKind.Relative);
 
-            var tb = (TextBox)p;
+            var resourceInfo = Application.GetResourceStream(fileUri);
 
-            try
+            if (resourceInfo != null)
+                using (var xmlTextReader = new XmlTextReader(resourceInfo.Stream))
+                {
+                    SyntaxHighlightDef = HighlightingLoader.Load(xmlTextReader, HighlightingManager.Instance);
+                }
+            else
+                Trace.WriteLine($"Failed to load syntax Highlighting file from [{fileUri}]");
+        }
+        
+        private Task<string> FormatJson(string text)
+        {
+            return Task.Run(() =>
             {
-                var onlyJson = TrimToOnlyJson(Clipboard.GetText());
+                try
+                {
+                    if (Clipboard.ContainsText() == false) return string.Empty;
 
-                JsonText = JToken.Parse(onlyJson).ToString(Formatting.Indented);
-            }
-            catch (Exception ex)
-            {
-                JsonText = ex.Message;
-            }
-            finally
-            {
-                tb.ScrollToHome();
-            }
-
+                    var onlyJson = TrimToOnlyJson(text);
+                    return JToken.Parse(onlyJson).ToString(Formatting.Indented);
+                }
+                catch (Exception ex)
+                {
+                    return ex.Message;
+                }
+            });
         }
 
-
-        private string TrimToOnlyJson(string getText)
+        private string TrimToOnlyJson(string text)
         {
-            var match = Regex.Match(getText, "{(.*)}", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
+            // Grab only the JSON, using the brackets as start and end points
+            var match = Regex.Match(text, "{(.*)}", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
             return match.Success ? match.Captures[0].Value : string.Empty;
         }
     }

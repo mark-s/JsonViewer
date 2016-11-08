@@ -10,6 +10,8 @@ namespace JsonViewer
         public MainWindow()
         {
             InitializeComponent();
+            TextEditor.Options.HighlightCurrentLine = true;
         }
+
     }
 }
