@@ -57,7 +57,7 @@ namespace JsonViewer
             {
                 try
                 {
-                    if (Clipboard.ContainsText() == false) return string.Empty;
+                    if (string.IsNullOrEmpty(text)) return string.Empty;
 
                     var onlyJson = TrimToOnlyJson(text);
                     return JToken.Parse(onlyJson).ToString(Formatting.Indented);
