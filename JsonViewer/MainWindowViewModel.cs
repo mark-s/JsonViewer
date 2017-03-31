@@ -59,8 +59,8 @@ namespace JsonViewer
                 {
                     if (string.IsNullOrEmpty(text)) return string.Empty;
 
-                    var onlyJson = TrimToOnlyJson(text);
-                    return JToken.Parse(onlyJson).ToString(Formatting.Indented);
+                    //var onlyJson = TrimToOnlyJson(text);
+                    return JToken.Parse(text).ToString(Formatting.Indented);
                 }
                 catch (Exception ex)
                 {
@@ -72,7 +72,7 @@ namespace JsonViewer
         private string TrimToOnlyJson(string text)
         {
             // Grab only the JSON, using the brackets as start and end points
-            var match = Regex.Match(text, "{(.*)}", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
+            var match = Regex.Match(text, "{(.*)}", RegexOptions.Compiled | RegexOptions.Singleline , TimeSpan.FromSeconds(5));
             return match.Success ? match.Captures[0].Value : string.Empty;
         }
     }
